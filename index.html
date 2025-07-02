@@ -7,10 +7,11 @@
 <style>
 :root{--g:rgba(255,255,255,.28);--b:blur(16px);--a:#2f3c7e;--p1:#f6f4ff;--p2:#d2e4fa}
 *{box-sizing:border-box}body{margin:0;padding:1rem;font-family:-apple-system,Helvetica,Arial,sans-serif;background:linear-gradient(135deg,var(--p1),var(--p2));color:#222}
-header{backdrop-filter:var(--b);background:var(--g);border-radius:20px;padding:1rem;margin-bottom:1.2rem;box-shadow:0 4px 18px rgba(0,0,0,.15)}
+header{backdrop-filter:var(--b);background:var(--g);border-radius:20px;padding:1rem;margin-bottom:1.3rem;box-shadow:0 4px 18px rgba(0,0,0,.15)}
 h1{margin:0;font-size:1.4rem;color:var(--a)}.count{font-family:monospace;font-size:1rem;text-align:center;margin-top:.4rem}
-.grid{display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1rem}.card{flex:1 1 155px;background:var(--g);backdrop-filter:var(--b);padding:.9rem;border-radius:18px;text-align:center;box-shadow:0 1px 6px rgba(0,0,0,.12)}
-.card h2{margin:.2rem 0;font-size:.92rem;color:var(--a)}
+.grid{display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1rem}
+.card{flex:1 1 155px;background:var(--g);backdrop-filter:var(--b);padding:.9rem;border-radius:18px;text-align:center;box-shadow:0 1px 6px rgba(0,0,0,.12)}
+.card h2{margin:.15rem 0 .35rem;font-size:.92rem;color:var(--a)}
 input,select,button{width:100%;padding:.55rem;margin-top:.35rem;border-radius:12px;border:1px solid #ccc;font-size:.9rem}
 button{background:var(--a);color:#fff;border:none;cursor:pointer}
 details{margin-bottom:1rem}summary{cursor:pointer;font-weight:600;margin-bottom:.5rem}
@@ -18,22 +19,24 @@ table{width:100%;border-collapse:collapse;font-size:.84rem}th,td{padding:.32rem;
 tr.done td{text-decoration:line-through;opacity:.45}fieldset{border:none;padding:0;margin:0}
 @media(max-width:480px){.card{flex:1 1 120px}}
 </style>
-</head><body>
+</head>
+<body>
 <header>
   <h1>Plan de Viaje</h1>
   <div id="countdown" class="count">Sin configuración</div>
 </header>
 
-<!-- === RESUMEN GASTOS (igual que v4.1) -->
+<!-- RESUMEN GENERAL -->
 <section class="grid" id="mainSummary">
   <div class="card"><h2>Presupuesto plan</h2><span id="sumBudget">$0</span></div>
   <div class="card"><h2>Gastado real</h2><span id="sumSpent">$0</span></div>
   <div class="card"><h2>Diferencia</h2><span id="sumDiff">$0</span></div>
   <div class="card"><h2>Extra disponible</h2><span id="sumExtra">$0</span></div>
 </section>
+
 <section class="grid" id="dynamicCards"></section>
 
-<!-- === CONFIGURAR VIAJE === -->
+<!-- CONFIGURAR VIAJE -->
 <details id="configBox" open>
  <summary>🗓️ Configurar viaje</summary>
  <fieldset>
@@ -44,15 +47,13 @@ tr.done td{text-decoration:line-through;opacity:.45}fieldset{border:none;padding
  </fieldset>
 </details>
 
-<!-- === PLANIFICACIÓN ACTIVIDADES === -->
+<!-- PLANIFICACIÓN DE ACTIVIDADES -->
 <details id="actBlock">
  <summary>📅 Planificación de actividades</summary>
-
  <table id="actTbl">
   <thead><tr><th>Día</th><th>Inicio</th><th>Fin</th><th>Categoría</th><th>Descripción</th><th>✔︎</th></tr></thead>
   <tbody></tbody>
  </table>
-
  <fieldset>
   <select id="aDia"></select>
   <input type="time" id="aIni">
@@ -63,81 +64,197 @@ tr.done td{text-decoration:line-through;opacity:.45}fieldset{border:none;padding
  </fieldset>
 </details>
 
-<!-- === PLANIFICACIÓN GASTOS (igual que v4.1) -->
+<!-- PLANIFICACIÓN DE GASTOS -->
 <details id="planBlock">
  <summary>💸 Planificación de gastos</summary>
- <!-- ... (el mismo contenido de la versión 4.1) ... -->
+ <table id="planTbl">
+  <thead><tr><th>Tipo</th><th>Día</th><th>Categoría</th><th>Monto</th><th>Método</th><th>Banco</th><th>Real</th><th>✔︎</th></tr></thead>
+  <tbody></tbody>
+ </table>
+ <fieldset>
+  <select id="pTipo">
+    <option value="fijo">Fijo por día</option>
+    <option value="variable">Variable (todo viaje)</option>
+  </select>
+  <select id="pDia"></select>
+  <select id="pCat"></select>
+  <input type="number" id="pMonto" step="0.01" placeholder="$">
+  <select id="pPay">
+    <option value="Efectivo">Efectivo</option>
+    <option value="Debito">Débito</option>
+    <option value="Credito">Crédito</option>
+  </select>
+  <select id="pBank" style="display:none"></select>
+  <button type="button" onclick="addPlan()">Añadir plan</button>
+ </fieldset>
 </details>
 
-<!-- === GASTO REAL & LISTA GASTOS (igual que v4.1) -->
+<!-- GASTO REAL -->
 <details id="realBlock" open>
- <!-- ... -->
+ <summary>➕ Registrar gasto real</summary>
+ <fieldset>
+  <label>Fecha</label><input type="date" id="gDate">
+  <label>Categoría</label><select id="gCat"></select>
+  <label>Monto</label><input type="number" id="gAmount" step="0.01">
+  <label>Método pago</label>
+  <select id="gPay">
+    <option value="Efectivo">Efectivo</option>
+    <option value="Debito">Débito</option>
+    <option value="Credito">Crédito</option>
+  </select>
+  <label id="gBankLbl" style="display:none">Banco</label>
+  <select id="gBank" style="display:none"></select>
+  <label>¿Usa extra?</label><select id="gExtra"><option value="no">No</option><option value="si">Sí</option></select>
+  <label id="motivoLbl" style="display:none">Motivo extra</label>
+  <input id="motivoTxt" style="display:none">
+  <button type="button" onclick="addGasto()">Guardar gasto</button>
+ </fieldset>
 </details>
+
+<!-- LISTA GASTOS -->
 <details><summary>🗒️ Gastos registrados</summary><ul id="lista"></ul></details>
 
 <script>
-/* ==== CONSTANTES Y DATOS (se mantienen) ==== */
+/* CONSTANTES */
 const BANKS=["Pichincha","Pacifico","Internacional","Guayaquil","Produbanco","JEP","Policia","Austro","Bolivariano"];
 const CATS_FIXED=["Buseta","Alquiler de carro","Hotel","GOLO","Entretenimiento","Comida","Aeropuerto","Snacks","Extras paseo","Transporte","Parqueo"];
 const CATS_POOL=["Ropa","Propinas","Gasolina"];
-const LS="planViajeDataV42";
+const LS="planViajeV42";
+/* DATA */
 let data=JSON.parse(localStorage.getItem(LS)||'{"meta":{},"plan":[],"actividades":[],"gastos":[]}');
 const fmt=n=>'$'+(+n).toFixed(2);
 function save(){localStorage.setItem(LS,JSON.stringify(data));}
 
-/* ==== POBLAR SELECTS ==== */
+/* ==== POPULATE SELECTS ==== */
 function fill(sel,arr){sel.innerHTML=arr.map(v=>`<option>${v}</option>`).join("")}
-fill(document.getElementById('aCat'),[...CATS_FIXED,...CATS_POOL]);
-fill(document.getElementById('gCat'),[...CATS_FIXED,...CATS_POOL]);
-fill(document.getElementById('pCat'),[...CATS_FIXED,...CATS_POOL]);
-fill(document.getElementById('pBank'),BANKS);fill(document.getElementById('gBank'),BANKS);
+fill(aCat,[...CATS_FIXED,...CATS_POOL]);
+fill(gCat,[...CATS_FIXED,...CATS_POOL]);
+fill(pCat,[...CATS_FIXED,...CATS_POOL]);
+fill(pBank,BANKS);fill(gBank,BANKS);
 
-/* ==== DÍAS DINÁMICOS ==== */
-function rebuildDiaOptions(){
-  const sel=document.getElementById('aDia'); sel.innerHTML='';
-  const sel2=document.getElementById('pDia'); sel2.innerHTML='';
+/* ==== DYNAMIC DAYS ==== */
+function rebuildDias(){
+  [aDia,pDia].forEach(sel=>sel.innerHTML='');
   if(data.meta.start&&data.meta.end){
     const s=new Date(data.meta.start),e=new Date(data.meta.end);
     const n=Math.round((e-s)/86400000)+1;
-    for(let i=1;i<=n;i++){
-      sel.innerHTML+=`<option value="${i}">Día ${i}</option>`;
-      sel2.innerHTML+=`<option value="${i}">Día ${i}</option>`;
-    }
+    for(let i=1;i<=n;i++){aDia.innerHTML+=`<option>${i}</option>`;pDia.innerHTML+=`<option>${i}</option>`;}
   }
-  sel2.innerHTML+='<option>Todos</option>';
-} 
+  pDia.innerHTML+='<option>Todos</option>';
+}
 
-function saveTrip(){data.meta.start=tripStart.value;data.meta.end=tripEnd.value;data.meta.lock=tripLock.value;save();rebuildDiaOptions();renderUI();tick();configBox.open=false;}
+/* ==== SAVE DATES ==== */
+function saveTrip(){
+  data.meta.start=tripStart.value;data.meta.end=tripEnd.value;data.meta.lock=tripLock.value;
+  save();rebuildDias();renderUI();tick();configBox.open=false;
+}
 
-/* ==== ACTIVIDADES ==== */
+/* ==== ACTIVITIES ==== */
 function addAct(){
-  const dia=aDia.value,ini=aIni.value,fin=aFin.value,cat=aCat.value,txt=aTxt.value.trim();
-  if(!ini||!txt){alert('Hora inicio y descripción obligatorias');return;}
-  data.actividades.push({id:crypto.randomUUID(),dia:+dia,ini,fin,cat,txt,done:false});
-  save();renderActTable();
-  aIni.value='';aFin.value='';aTxt.value='';
+  if(!aIni.value||!aTxt.value.trim()){alert('Hora inicio y descripción.');return;}
+  data.actividades.push({id:crypto.randomUUID(),dia:+aDia.value,ini:aIni.value,fin:aFin.value,cat:aCat.value,txt:aTxt.value.trim(),done:false});
+  save();renderActTable();aIni.value='';aFin.value='';aTxt.value='';
 }
-function toggleAct(id){
-  const a=data.actividades.find(x=>x.id===id);if(a){a.done=!a.done;save();renderActTable();}
-}
+function toggleAct(id){const A=data.actividades.find(x=>x.id===id);if(A){A.done=!A.done;save();renderActTable();}}
 function renderActTable(){
-  const tb=document.querySelector('#actTbl tbody');tb.innerHTML='';
+  actTbl.tBodies[0].innerHTML='';
   data.actividades.sort((a,b)=>a.dia-b.dia||a.ini.localeCompare(b.ini)).forEach(a=>{
     const tr=document.createElement('tr');if(a.done)tr.classList.add('done');
-    tr.innerHTML=`<td>Día ${a.dia}</td><td>${a.ini}</td><td>${a.fin||''}</td>
-      <td>${a.cat}</td><td>${a.txt}</td>
-      <td><input type="checkbox" ${a.done?'checked':''} onclick="toggleAct('${a.id}')"></td>`;
-    tb.appendChild(tr);
+    tr.innerHTML=`<td>${a.dia}</td><td>${a.ini}</td><td>${a.fin||''}</td><td>${a.cat}</td><td>${a.txt}</td>
+                  <td><input type="checkbox" ${a.done?'checked':''} onclick="toggleAct('${a.id}')"></td>`;
+    actTbl.tBodies[0].appendChild(tr);
   });
 }
 
-/* ==== RESTO DE CÓDIGO (v4.1) ==== */
-/*  - Planificación gastos, gastos reales, resúmenes, countdown, etc.
-    (se mantiene igual; recorta aquí por brevedad) */
+/* ==== PLAN EXPENSES ==== */
+pPay.onchange=()=>pBank.style.display=pPay.value==="Credito"?'block':'none';
+gPay.onchange=()=>{const s=gPay.value==="Credito";gBankLbl.style.display=gBank.style.display=s?'block':'none';};
+gExtra.onchange=()=>{const s=gExtra.value==='si';motivoLbl.style.display=motivoTxt.style.display=s?'block':'none';};
+pTipo.onchange=()=>{if(pTipo.value==="variable")pDia.value="Todos";}
+function addPlan(){
+  const tipo=pTipo.value,dia=pDia.value,cat=pCat.value,m=parseFloat(pMonto.value||0),pay=pPay.value,bank=pay==="Credito"?pBank.value:"";
+  if(!m){alert('Monto requerido');return;}
+  if(tipo==="fijo"&&dia==="Todos"||tipo==="variable"&&dia!=="Todos"){alert('Revisa Día/Tipo.');return;}
+  data.plan.push({id:crypto.randomUUID(),tipo,dia,cat,monto:m,metodo:pay,banco:bank,real:0,done:false});
+  save();renderPlanTable();updateSummary();pMonto.value='';
+}
+function getDiaIdx(d){return d==="Todos"?-1:+d;}
+function registrarReal(id,val){const p=data.plan.find(x=>x.id===id);if(p){p.real=parseFloat(val)||0;p.done=p.real>0;save();renderPlanTable();updateSummary();}}
+function togglePlan(id){const p=data.plan.find(x=>x.id===id);if(p){p.done=!p.done;save();renderPlanTable();updateSummary();}}
+function renderPlanTable(){
+  planTbl.tBodies[0].innerHTML='';
+  data.plan.forEach(p=>{
+    const tr=document.createElement('tr');if(p.done)tr.classList.add('done');
+    tr.innerHTML=`<td>${p.tipo}</td><td>${p.dia}</td><td>${p.cat}</td><td>${fmt(p.monto)}</td>
+      <td>${p.metodo}</td><td>${p.banco||'-'}</td>
+      <td><input type="number" step="0.01" value="${p.real||''}" oninput="registrarReal('${p.id}',this.value)"></td>
+      <td><input type="checkbox" ${p.done?'checked':''} onclick="togglePlan('${p.id}')"></td>`;
+    planTbl.tBodies[0].appendChild(tr);
+  });
+}
 
-function renderUI(){rebuildDiaOptions();renderActTable();/* + funciones v4.1 */}
+/* ==== GASTO REAL ==== */
+function addGasto(){
+  if(!gDate.value||!gAmount.value){alert('Fecha y monto.');return;}
+  const g={fecha:gDate.value,cat:gCat.value,monto:+gAmount.value,metodo:gPay.value,banco:gPay.value==="Credito"?gBank.value:"",extra:gExtra.value==='si',motivo:motivoTxt.value.trim()};
+  data.gastos.push(g); /* marcar plan */
+  data.plan.forEach(p=>{
+    if(!p.done){
+      if(p.tipo==="variable"&&p.cat===g.cat){p.done=true;p.real+=g.monto;}
+      if(p.tipo==="fijo"&&getDiaIdx(p.dia)===getDiaIdx(getTripDia(g.fecha))&&p.cat===g.cat){p.done=true;p.real=g.monto;}
+    }
+  });
+  save();renderList();updateSummary();gAmount.value='';motivoTxt.value='';
+}
+function getTripDia(f){const base=new Date(data.meta.start),d=new Date(f);return Math.round((d-base)/86400000)+1;}
+function renderList(){
+  lista.innerHTML='';
+  data.gastos.forEach(g=>{
+    lista.innerHTML+=`<li>${g.fecha} • ${g.cat} • ${fmt(g.monto)} • ${g.metodo}${g.banco?'-'+g.banco:''}${g.extra?' • extra':''}</li>`;
+  });
+}
 
-/* init */
-renderUI();tick();setInterval(tick,1e3);
+/* ==== RESUMEN dinamico ==== */
+function updateSummary(){
+  const planTotal=data.plan.reduce((s,p)=>s+p.monto,0),realTotal=data.gastos.reduce((s,g)=>s+g.monto,0);
+  sumBudget.textContent=fmt(planTotal);sumSpent.textContent=fmt(realTotal);sumDiff.textContent=fmt(planTotal-realTotal);
+  /* bancos */
+  const stat={};BANKS.forEach(b=>stat[b]={plan:0,real:0,rPlan:0,rReal:0});
+  data.plan.forEach(p=>{if(p.metodo==="Credito")stat[p.banco].plan+=p.monto;if(p.metodo==="Credito"&&p.cat==="Ropa")stat[p.banco].rPlan+=p.monto;});
+  data.gastos.forEach(g=>{if(g.metodo==="Credito")stat[g.banco].real+=g.monto;if(g.metodo==="Credito"&&g.cat==="Ropa")stat[g.banco].rReal+=g.monto;});
+  const cont=dynamicCards;cont.innerHTML='';
+  BANKS.forEach(b=>{
+    const s=stat[b];if(!s.plan&&!s.real)return;
+    cont.innerHTML+=`<div class="card"><h2>${b} Total</h2><span>${fmt(s.plan-s.real)}</span></div>`;
+    if(s.rPlan||s.rReal)cont.innerHTML+=`<div class="card"><h2>${b} Ropa</h2><span>${fmt(s.rPlan-s.rReal)}</span></div>`;
+  });
+  /* pools */
+  const pool=(cat)=>({plan:data.plan.filter(p=>p.tipo==="variable"&&p.cat===cat).reduce((s,p)=>s+p.monto,0),
+                      real:data.gastos.filter(g=>g.cat===cat).reduce((s,g)=>s+g.monto,0)});
+  const GAS=pool("Gasolina"),PR=pool("Propinas");
+  cont.innerHTML+=`<div class="card"><h2>Gasolina saldo</h2><span>${fmt(GAS.plan-GAS.real)}</span></div>`;
+  cont.innerHTML+=`<div class="card"><h2>Propinas saldo</h2><span>${fmt(PR.plan-PR.real)}</span></div>`;
+  /* variación */
+  const delta=data.plan.reduce((s,p)=>s+(p.real-p.monto),0);
+  cont.innerHTML+=`<div class="card"><h2>Variación plan</h2><span>${fmt(delta)}</span></div>`;
+  save();
+}
+
+/* ==== COUNTDOWN ==== */
+function tick(){
+  if(!data.meta.start)return;
+  const diff=new Date(data.meta.start)-new Date();
+  const el=countdown;if(diff<=0){el.textContent='¡Viaje en curso!';return;}
+  const d=Math.floor(diff/864e5),h=Math.floor(diff%864e5/36e5),m=Math.floor(diff%36e5/6e4),s=Math.floor(diff%6e4/1e3);
+  el.textContent=`${d}d ${h}h ${m}m ${s}s`;
+}
+/* INIT */
+function renderUI(){
+  rebuildDias();
+  renderActTable();renderPlanTable();renderList();updateSummary();
+  if(data.meta.lock&&new Date()>new Date(data.meta.lock))document.querySelectorAll('#planBlock input,#planBlock select,#planBlock button,#actBlock input,#actBlock select,#actBlock button').forEach(e=>e.disabled=true);
+}
+renderUI();tick();setInterval(tick,1000);
 </script>
-</body></html>
+</body>
+</html>
