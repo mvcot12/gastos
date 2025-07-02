@@ -1,0 +1,33 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Plan de Viaje</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+:root{
+  --glass-bg:rgba(255,255,255,0.3);
+  --blur:blur(14px);
+  --accent:#2f3c7e;
+}
+body{margin:0;font-family:-apple-system,Helvetica,Arial,sans-serif;background:linear-gradient(135deg,#f6f4ff,#d2e4fa);color:#222;padding:1rem;}
+header{backdrop-filter:var(--blur);background:var(--glass-bg);border-radius:20px;padding:1rem;margin-bottom:1rem;box-shadow:0 4px 20px rgba(0,0,0,.15);}
+h1{margin:0;color:var(--accent);font-size:1.4rem;}
+.countdown{font-family:monospace;font-size:1rem;text-align:center;margin-top:.3rem;}
+</style>
+</head>
+<body>
+<header>
+  <h1>Plan de Viaje</h1>
+  <div id="countdown" class="countdown">Cargando…</div>
+</header>
+<script>
+const target=new Date('2025-09-02T00:00:00-05:00').getTime();
+function tick(){const n=Date.now();let d=target-n;if(d<0){document.getElementById('countdown').textContent='¡Viaje iniciado!';return;}
+const days=Math.floor(d/864e5);d%=864e5;const h=Math.floor(d/36e5);d%=36e5;const m=Math.floor(d/6e4);d%=6e4;const s=Math.floor(d/1e3);
+document.getElementById('countdown').textContent=`${days}d ${h}h ${m}m ${s}s`; }
+tick();setInterval(tick,1e3);
+</script>
+</body>
+</html>
