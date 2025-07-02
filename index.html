@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -7,27 +6,155 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
 :root{
-  --glass-bg:rgba(255,255,255,0.3);
-  --blur:blur(14px);
-  --accent:#2f3c7e;
+ --glass-bg:rgba(255,255,255,.28);
+ --blur:blur(16px);
+ --accent:#2f3c7e;
+ --p1:#f6f4ff;
+ --p2:#d2e4fa;
 }
-body{margin:0;font-family:-apple-system,Helvetica,Arial,sans-serif;background:linear-gradient(135deg,#f6f4ff,#d2e4fa);color:#222;padding:1rem;}
-header{backdrop-filter:var(--blur);background:var(--glass-bg);border-radius:20px;padding:1rem;margin-bottom:1rem;box-shadow:0 4px 20px rgba(0,0,0,.15);}
-h1{margin:0;color:var(--accent);font-size:1.4rem;}
-.countdown{font-family:monospace;font-size:1rem;text-align:center;margin-top:.3rem;}
+*{box-sizing:border-box}
+body{margin:0;padding:1rem;font-family:-apple-system,Helvetica,Arial,sans-serif;
+     background:linear-gradient(135deg,var(--p1),var(--p2));color:#222;}
+header{backdrop-filter:var(--blur);background:var(--glass-bg);border-radius:20px;
+       padding:1rem;margin-bottom:1.2rem;box-shadow:0 4px 20px rgba(0,0,0,.15);}
+h1{margin:0;font-size:1.4rem;color:var(--accent);}
+.countdown{font-family:monospace;font-size:1rem;text-align:center;margin-top:.4rem}
+.grid{display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1rem}
+.card{flex:1 1 150px;padding:.9rem;border-radius:18px;background:var(--glass-bg);
+      backdrop-filter:var(--blur);text-align:center;box-shadow:0 1px 6px rgba(0,0,0,.12)}
+.card h2{margin:.2rem 0;font-size:.95rem;color:var(--accent)}
+input,select,button{width:100%;padding:.6rem;margin-top:.4rem;border-radius:12px;
+                    border:1px solid #ccc;font-size:.9rem}
+button{background:var(--accent);color:#fff;border:none}
+details{margin-bottom:1rem}
+summary{cursor:pointer;font-weight:600;margin-bottom:.6rem}
+#lista li{margin:.2rem 0;font-size:.85rem}
+fieldset{border:none;padding:0;margin:0}
 </style>
 </head>
 <body>
+
 <header>
   <h1>Plan de Viaje</h1>
   <div id="countdown" class="countdown">Cargando…</div>
 </header>
+
+<section class="grid">
+  <div class="card"><h2>Presupuesto</h2><span id="sumBudget">$0</span></div>
+  <div class="card"><h2>Gastado</h2><span id="sumSpent">$0</span></div>
+  <div class="card"><h2>Diferencia</h2><span id="sumDiff">$0</span></div>
+  <div class="card"><h2>Extra disponible</h2><span id="sumExtra">$0</span></div>
+</section>
+
+<section class="grid">
+  <div class="card"><h2>Pichincha saldo</h2><span id="saldoP">$600</span></div>
+  <div class="card"><h2>Pacífico saldo</h2><span id="saldoB">$600</span></div>
+</section>
+
+<details open>
+<summary>➕ Agregar gasto real</summary>
+<fieldset>
+<label>Fecha</label><input type="date" id="gDate">
+<label>Categoría</label><input type="text" id="gCat" placeholder="Comida / Transporte …">
+<label>Monto (USD)</label><input type="number" id="gAmount" step="0.01">
+<label>Método de pago</label>
+<select id="gPay">
+  <option value="Pichincha">Tarjeta Pichincha</option>
+  <option value="Pacifico">Tarjeta Pacífico</option>
+  <option value="Efectivo">Efectivo</option>
+  <option value="Debito">Tarjeta Débito</option>
+</select>
+<label>¿Usa dinero extra?</label>
+<select id="gExtra">
+  <option value="no">No</option>
+  <option value="si">Sí</option>
+</select>
+<label id="motivoLbl" style="display:none">Motivo extra</label>
+<input type="text" id="motivoTxt" style="display:none" placeholder="Detalle…">
+<button type="button" onclick="addGasto()">Guardar gasto</button>
+</fieldset>
+</details>
+
+<details>
+<summary>🗒️ Lista de gastos registrados</summary>
+<ul id="lista"></ul>
+</details>
+
 <script>
-const target=new Date('2025-09-02T00:00:00-05:00').getTime();
-function tick(){const n=Date.now();let d=target-n;if(d<0){document.getElementById('countdown').textContent='¡Viaje iniciado!';return;}
-const days=Math.floor(d/864e5);d%=864e5;const h=Math.floor(d/36e5);d%=36e5;const m=Math.floor(d/6e4);d%=6e4;const s=Math.floor(d/1e3);
-document.getElementById('countdown').textContent=`${days}d ${h}h ${m}m ${s}s`; }
+/* --- Cuenta regresiva --- */
+const viajeStart=new Date('2025-09-02T00:00:00-05:00').getTime();
+function tick(){
+  const now=Date.now();let diff=viajeStart-now;
+  const el=document.getElementById('countdown');
+  if(diff<=0){el.textContent='¡Viaje en curso!';return;}
+  const d=Math.floor(diff/864e5);diff%=864e5;
+  const h=Math.floor(diff/36e5);diff%=36e5;
+  const m=Math.floor(diff/6e4);diff%=6e4;
+  const s=Math.floor(diff/1e3);
+  el.textContent=`${d}d ${h}h ${m}m ${s}s`;
+}
 tick();setInterval(tick,1e3);
+
+/* --- Almacenamiento --- */
+const LS='planViajeData';
+let data=JSON.parse(localStorage.getItem(LS)||'{"gastos":[]}');
+
+/* --- Saldo inicial tarjetas --- */
+const baseSaldo={Pichincha:600, Pacifico:600};
+
+/* --- Helpers --- */
+const fmt=n=>'$'+n.toFixed(2);
+function save(){localStorage.setItem(LS,JSON.stringify(data));}
+function updateSummary(){
+  /* reiniciar saldos */
+  const saldo={...baseSaldo};
+  let gast=0, extra=0;
+  data.gastos.forEach(g=>{
+    gast+=g.monto;
+    if(g.extra) extra-=g.monto;
+    if(saldo[g.metodo]!==undefined) saldo[g.metodo]-=g.monto;
+  });
+  document.getElementById('sumBudget').textContent='$0';
+  document.getElementById('sumSpent').textContent=fmt(gast);
+  document.getElementById('sumDiff').textContent=fmt(-gast);
+  document.getElementById('sumExtra').textContent=fmt(extra);
+  document.getElementById('saldoP').textContent=fmt(saldo.Pichincha);
+  document.getElementById('saldoB').textContent=fmt(saldo.Pacifico);
+}
+function renderList(){
+  const ul=document.getElementById('lista'); ul.innerHTML='';
+  data.gastos.forEach(g=>{
+    const li=document.createElement('li');
+    li.textContent=`${g.fecha} • ${g.cat} • ${fmt(g.monto)} • ${g.metodo}${g.extra?' • extra:'+g.motivo:''}`;
+    ul.appendChild(li);
+  });
+}
+
+/* --- Agregar gasto --- */
+function addGasto(){
+  const fecha=document.getElementById('gDate').value;
+  const cat=document.getElementById('gCat').value.trim();
+  const monto=parseFloat(document.getElementById('gAmount').value||'0');
+  const metodo=document.getElementById('gPay').value;
+  const usaExtra=document.getElementById('gExtra').value==='si';
+  const motivo=document.getElementById('motivoTxt').value.trim();
+  if(!fecha||!cat||!monto){alert('Completa todos los campos');return;}
+  data.gastos.push({fecha,cat,monto,metodo,extra:usaExtra,motivo});
+  save();renderList();updateSummary();
+  document.getElementById('gCat').value='';
+  document.getElementById('gAmount').value='';
+  if(usaExtra){document.getElementById('motivoTxt').value='';}
+}
+
+/* --- Mostrar/esconder motivo extra --- */
+document.getElementById('gExtra').addEventListener('change',e=>{
+  const show=e.target.value==='si';
+  document.getElementById('motivoLbl').style.display=show?'block':'none';
+  document.getElementById('motivoTxt').style.display=show?'block':'none';
+});
+
+/* --- Inicialización --- */
+renderList();updateSummary();
 </script>
 </body>
 </html>
