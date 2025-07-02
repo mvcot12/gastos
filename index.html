@@ -6,26 +6,26 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
 :root{
-  --glass:rgba(255,255,255,.28);
-  --blur:blur(16px);
-  --accent:#2f3c7e;
-  --p1:#f6f4ff;
-  --p2:#d2e4fa;
+ --glass:rgba(255,255,255,.28);
+ --blur:blur(16px);
+ --accent:#2f3c7e;
+ --p1:#f6f4ff;
+ --p2:#d2e4fa;
 }
 *{box-sizing:border-box}
 body{margin:0;padding:1rem;font-family:-apple-system,Helvetica,Arial,sans-serif;
      background:linear-gradient(135deg,var(--p1),var(--p2));color:#222;}
 header{backdrop-filter:var(--blur);background:var(--glass);border-radius:20px;
-       padding:1rem;margin-bottom:1.2rem;box-shadow:0 4px 20px rgba(0,0,0,.15);}
-h1{margin:0;font-size:1.4rem;color:var(--accent)}
+       padding:1rem;margin-bottom:1.2rem;box-shadow:0 4px 20px rgba(0,0,0,.15)}
+h1{margin:0;font-size:1.45rem;color:var(--accent)}
 .countdown{font-family:monospace;font-size:1rem;text-align:center;margin-top:.4rem}
 .grid{display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1rem}
-.card{flex:1 1 150px;background:var(--glass);backdrop-filter:var(--blur);
+.card{flex:1 1 155px;background:var(--glass);backdrop-filter:var(--blur);
       padding:.9rem;border-radius:18px;text-align:center;box-shadow:0 1px 6px rgba(0,0,0,.12)}
-.card h2{margin:.2rem 0;font-size:.95rem;color:var(--accent)}
+.card h2{margin:.2rem 0;font-size:.92rem;color:var(--accent)}
 input,select,button{width:100%;padding:.55rem;margin-top:.35rem;border-radius:12px;
                     border:1px solid #ccc;font-size:.9rem}
-button{background:var(--accent);color:#fff;border:none}
+button{background:var(--accent);color:#fff;border:none;cursor:pointer}
 details{margin-bottom:1rem}
 summary{cursor:pointer;font-weight:600;margin-bottom:.5rem}
 table{width:100%;border-collapse:collapse;font-size:.85rem}
@@ -33,203 +33,295 @@ th,td{padding:.35rem;border-bottom:1px solid #ddd;text-align:left}
 tr.done td{opacity:.5;text-decoration:line-through}
 #lista li{margin:.25rem 0}
 fieldset{border:none;padding:0;margin:0}
+@media(max-width:480px){.card{flex:1 1 120px}}
 </style>
 </head>
 <body>
 
 <header>
   <h1>Plan de Viaje</h1>
-  <div id="countdown" class="countdown">Cargando…</div>
+  <div id="countdown" class="countdown">Sin configuración</div>
 </header>
 
-<!-- RESUMEN -->
-<section class="grid">
-  <div class="card"><h2>Presupuesto</h2><span id="sumBudget">$0</span></div>
-  <div class="card"><h2>Gastado</h2><span id="sumSpent">$0</span></div>
+<!-- ==== RESUMEN PRINCIPAL ==== -->
+<section class="grid" id="mainSummary">
+  <div class="card"><h2>Presupuesto plan</h2><span id="sumBudget">$0</span></div>
+  <div class="card"><h2>Gastado real</h2><span id="sumSpent">$0</span></div>
   <div class="card"><h2>Diferencia</h2><span id="sumDiff">$0</span></div>
-  <div class="card"><h2>Extra disp.</h2><span id="sumExtra">$0</span></div>
+  <div class="card"><h2>Extra disponible</h2><span id="sumExtra">$0</span></div>
 </section>
 
-<section class="grid">
-  <div class="card"><h2>Pichincha saldo</h2><span id="saldoP">$600</span></div>
-  <div class="card"><h2>Pacífico saldo</h2><span id="saldoB">$600</span></div>
+<section class="grid" id="cardSummary">
+  <div class="card"><h2>Pichincha total</h2><span id="pTotal">$0</span></div>
+  <div class="card"><h2>Pacífico total</h2><span id="bTotal">$0</span></div>
+  <div class="card"><h2>Pichincha ropa</h2><span id="pRopa">$0</span></div>
+  <div class="card"><h2>Pacífico ropa</h2><span id="bRopa">$0</span></div>
+  <div class="card"><h2>Gasolina saldo</h2><span id="gasSaldo">$0</span></div>
+  <div class="card"><h2>Propinas saldo</h2><span id="propSaldo">$0</span></div>
+  <div class="card"><h2>Variación plan</h2><span id="planDelta">$0</span></div>
 </section>
 
-<!-- CONFIGURACIÓN DEL VIAJE -->
+<!-- ==== CONFIGURAR VIAJE ==== -->
 <details id="configBox" open>
- <summary>🗓️ Configurar viaje</summary>
- <fieldset>
-  <label>Fecha inicio</label><input type="date" id="tripStart">
-  <label>Fecha fin</label><input type="date" id="tripEnd">
-  <label>Fecha límite edición plan</label><input type="date" id="tripLock">
-  <button type="button" onclick="saveTrip()">Guardar viaje</button>
- </fieldset>
+  <summary>🗓️ Configurar viaje</summary>
+  <fieldset>
+    <label>Fecha inicio</label><input type="date"  id="tripStart">
+    <label>Fecha fin</label><input type="date"      id="tripEnd">
+    <label>Fecha límite edición plan</label><input type="date" id="tripLock">
+
+    <label>Saldo inicial Tarjeta Pichincha (total)</label>
+    <input type="number" id="pIni" step="0.01" placeholder="ej. 1200">
+    <label>Saldo inicial Tarjeta Pacífico (total)</label>
+    <input type="number" id="bIni" step="0.01" placeholder="ej. 1000">
+
+    <label>Fondo total Gasolina</label><input type="number" id="gasIni" step="0.01" placeholder="ej. 100">
+    <label>Fondo total Propinas</label><input type="number" id="propIni" step="0.01" placeholder="ej. 200">
+    <label>Fondo total Ropa</label><input type="number" id="ropaIni" step="0.01" placeholder="ej. 600">
+
+    <button type="button" onclick="saveTrip()">Guardar viaje</button>
+  </fieldset>
 </details>
 
-<!-- PLANIFICACIÓN -->
+<!-- ==== PLANIFICACIÓN ==== -->
 <details id="planBlock">
- <summary>📝 Planificación (hasta fecha límite)</summary>
- <table id="planTbl">
-  <thead><tr><th>Fecha</th><th>Categoría</th><th>Monto</th><th>Método</th><th></th></tr></thead>
-  <tbody></tbody>
- </table>
- <fieldset>
-  <input type="date" id="pDate">
-  <input type="text"  id="pCat" placeholder="Categoría">
-  <input type="number" id="pMonto" placeholder="$" step="0.01">
-  <select id="pPay">
-    <option value="Pichincha">Pichincha</option>
-    <option value="Pacifico">Pacífico</option>
-    <option value="Efectivo">Efectivo</option>
-    <option value="Debito">Débito</option>
-  </select>
-  <button type="button" onclick="addPlan()">Añadir plan</button>
- </fieldset>
+  <summary>📝 Planificación (editable hasta fecha límite)</summary>
+
+  <!-- tabla -->
+  <table id="planTbl">
+    <thead><tr>
+      <th>Fecha</th><th>Categoría</th><th>Monto</th>
+      <th>Método</th><th>Tarjeta</th><th>Real</th><th></th>
+    </tr></thead>
+    <tbody></tbody>
+  </table>
+
+  <!-- formulario añadir fila -->
+  <fieldset>
+    <input type="date" id="pDate">
+
+    <select id="pCat"></select>
+
+    <input type="number" id="pMonto" step="0.01" placeholder="$">
+
+    <select id="pPay">
+      <option value="Efectivo">Efectivo</option>
+      <option value="Debito">Débito</option>
+      <option value="Credito">Crédito</option>
+    </select>
+
+    <select id="pTarj" style="display:none">
+      <option value="Pichincha">Pichincha</option>
+      <option value="Pacifico">Pacífico</option>
+    </select>
+
+    <button type="button" onclick="addPlan()">Añadir plan</button>
+  </fieldset>
 </details>
 
-<!-- GASTO REAL -->
+<!-- ==== GASTO REAL ==== -->
 <details id="realBlock" open>
- <summary>➕ Registrar gasto real</summary>
- <fieldset>
-  <label>Fecha</label><input type="date" id="gDate">
-  <label>Categoría</label><input type="text" id="gCat">
-  <label>Monto</label><input type="number" id="gAmount" step="0.01">
-  <label>Método pago</label>
-  <select id="gPay">
-    <option value="Pichincha">Pichincha</option>
-    <option value="Pacifico">Pacífico</option>
-    <option value="Efectivo">Efectivo</option>
-    <option value="Debito">Débito</option>
-  </select>
-  <label>¿Usa extra?</label>
-  <select id="gExtra">
-    <option value="no">No</option><option value="si">Sí</option>
-  </select>
-  <label id="motivoLbl" style="display:none">Motivo extra</label>
-  <input  id="motivoTxt" style="display:none">
-  <button type="button" onclick="addGasto()">Guardar gasto</button>
- </fieldset>
+  <summary>➕ Registrar gasto real</summary>
+  <fieldset>
+    <label>Fecha</label><input type="date" id="gDate">
+    <label>Categoría</label><select id="gCat"></select>
+    <label>Monto</label><input type="number" id="gAmount" step="0.01">
+
+    <label>Método pago</label>
+    <select id="gPay">
+      <option value="Efectivo">Efectivo</option>
+      <option value="Debito">Débito</option>
+      <option value="Credito">Crédito</option>
+    </select>
+
+    <label id="gTarjLbl" style="display:none">Tarjeta</label>
+    <select id="gTarj" style="display:none">
+      <option value="Pichincha">Pichincha</option>
+      <option value="Pacifico">Pacífico</option>
+    </select>
+
+    <label>¿Usa extra?</label>
+    <select id="gExtra">
+      <option value="no">No</option><option value="si">Sí</option>
+    </select>
+    <label id="motivoLbl" style="display:none">Motivo extra</label>
+    <input  id="motivoTxt" style="display:none">
+
+    <button type="button" onclick="addGasto()">Guardar gasto</button>
+  </fieldset>
 </details>
 
-<!-- LISTA GASTOS -->
+<!-- ==== LISTA DE GASTOS ==== -->
 <details>
- <summary>🗒️ Gastos registrados</summary>
- <ul id="lista"></ul>
+  <summary>🗒️ Gastos registrados</summary>
+  <ul id="lista"></ul>
 </details>
 
 <script>
-/* === ESTRUCTURA DE DATOS EN localStorage ===
-data = {
-  meta:{start:'2025-09-02',end:'2025-09-13',lock:'2025-09-01'},
-  plan:[{id,fecha,cat,monto,metodo,done:false}],
-  gastos:[{fecha,cat,monto,metodo,extra,motivo}]
+/* === CONSTANTES === */
+const CATS_FIXED = ["Buseta","Alquiler de carro","Hotel","GOLO","Entretenimiento",
+                    "Comida","Aeropuerto","Snacks","Extras paseo","Transporte","Parqueo"];
+const CATS_POOL  = ["Ropa","Propinas","Gasolina"];
+const LS = "planViajeDataV3";
+
+/* === DATOS ================================================================= */
+let data = JSON.parse(localStorage.getItem(LS)||'{"meta":{},"plan":[],"gastos":[]}');
+
+/* === UTILIDADES ============================================================ */
+const fmt = n=>'$'+(+n).toFixed(2);
+function save(){ localStorage.setItem(LS,JSON.stringify(data)); }
+
+/* === SELECTS DE CATEGORÍA ================================================== */
+function fillCatSelect(sel){
+  sel.innerHTML = [...CATS_FIXED,...CATS_POOL]
+     .map(c=>`<option value="${c}">${c}</option>`).join("");
 }
-=============================================*/
-const LS='planViajeDataV2';
-let data=JSON.parse(localStorage.getItem(LS)||'{"meta":{},"plan":[],"gastos":[]}');
+fillCatSelect(document.getElementById('pCat'));
+fillCatSelect(document.getElementById('gCat'));
 
-/* === UTILIDADES === */
-const fmt=n=>'$'+n.toFixed(2);
-function save(){localStorage.setItem(LS,JSON.stringify(data));}
-
-/* === CONFIGURACIÓN VIAJE === */
+/* === CONFIGURAR VIAJE ====================================================== */
 function saveTrip(){
-  const start=document.getElementById('tripStart').value;
-  const end  =document.getElementById('tripEnd').value;
-  const lock =document.getElementById('tripLock').value;
-  if(!start||!end||!lock){alert('Completa fechas');return;}
-  data.meta={start,end,lock}; save(); renderUI(); tick();
+  const m = data.meta = {
+    start: document.getElementById('tripStart').value,
+    end:   document.getElementById('tripEnd').value,
+    lock:  document.getElementById('tripLock').value,
+    pIni:  parseFloat(document.getElementById('pIni').value||0),
+    bIni:  parseFloat(document.getElementById('bIni').value||0),
+    gasIni: parseFloat(document.getElementById('gasIni').value||0),
+    propIni:parseFloat(document.getElementById('propIni').value||0),
+    ropaIni: parseFloat(document.getElementById('ropaIni').value||0)
+  };
+  save(); renderUI(); tick();
+  // Ocultar config una vez guardado
+  document.getElementById('configBox').open=false;
 }
 
-/* === PLANIFICACIÓN === */
+/* === PLANIFICACIÓN ======================================================== */
 function addPlan(){
-  const f=document.getElementById('pDate').value;
-  const c=document.getElementById('pCat').value.trim();
-  const m=parseFloat(document.getElementById('pMonto').value||'0');
-  const met=document.getElementById('pPay').value;
-  if(!f||!c||!m){alert('Completa datos');return;}
-  data.plan.push({id:crypto.randomUUID(),fecha:f,cat:c,monto:m,metodo:met,done:false});
+  const f = document.getElementById('pDate').value;
+  const cat = document.getElementById('pCat').value;
+  const monto = parseFloat(document.getElementById('pMonto').value||'0');
+  const pay = document.getElementById('pPay').value;
+  const tarj = pay==="Credito" ? document.getElementById('pTarj').value : "";
+  if((CATS_FIXED.includes(cat)&&!f) || !monto){
+     alert('Fecha y monto son obligatorios');return;}
+  data.plan.push({id:crypto.randomUUID(),fecha:f,cat,monto,metodo:pay,tarjeta:tarj,real:0,done:false});
   save(); renderPlanTable();
-  document.getElementById('pCat').value='';
   document.getElementById('pMonto').value='';
 }
-function toggleDone(id){
-  const p=data.plan.find(x=>x.id===id);
-  if(p){p.done=!p.done; save(); renderPlanTable();}
+function toggleDone(id){ /* marcar manual */
+  const p = data.plan.find(x=>x.id===id); if(!p)return;
+  p.done = !p.done; save(); renderPlanTable(); updateSummary();
+}
+function registrarReal(id,val){
+  const p = data.plan.find(x=>x.id===id); if(!p)return;
+  p.real = parseFloat(val)||0; p.done = p.real>0;
+  save(); renderPlanTable(); updateSummary();
 }
 function renderPlanTable(){
-  const tb=document.querySelector('#planTbl tbody');
-  tb.innerHTML='';
+  const tb = document.querySelector('#planTbl tbody'); tb.innerHTML='';
   data.plan.sort((a,b)=>a.fecha.localeCompare(b.fecha)).forEach(p=>{
     const tr=document.createElement('tr');
     if(p.done) tr.classList.add('done');
-    tr.innerHTML=`<td>${p.fecha}</td><td>${p.cat}</td><td>${fmt(p.monto)}</td>
-                  <td>${p.metodo}</td>
-                  <td><input type="checkbox" ${p.done?'checked':''}
-                         onclick="toggleDone('${p.id}')"></td>`;
+    tr.innerHTML=`<td>${p.fecha||'-'}</td><td>${p.cat}</td><td>${fmt(p.monto)}</td>
+      <td>${p.metodo}</td><td>${p.tarjeta||'-'}</td>
+      <td><input type="number" step="0.01" min="0" value="${p.real||''}"
+           oninput="registrarReal('${p.id}',this.value)"></td>
+      <td><input type="checkbox" ${p.done?'checked':''}
+           onclick="toggleDone('${p.id}')"></td>`;
     tb.appendChild(tr);
   });
 }
 
-/* === GASTO REAL === */
-const baseSaldo={Pichincha:600,Pacifico:600};
-function updateSummary(){
-  let gast=0, extra=0;
-  const saldo={...baseSaldo};
-  data.gastos.forEach(g=>{
-    gast+=g.monto;
-    if(g.extra) extra-=g.monto;
-    if(saldo[g.metodo]!=null) saldo[g.metodo]-=g.monto;
-  });
-  /* plan no ejecutado en días pasados => extra */
-  const hoyStr=new Date().toISOString().slice(0,10);
-  data.plan.forEach(p=>{
-    if(!p.done && p.fecha<hoyStr){p.done=true;extra+=p.monto;}
-  });
-  document.getElementById('sumBudget').textContent='$0';
-  document.getElementById('sumSpent').textContent=fmt(gast);
-  document.getElementById('sumDiff').textContent=fmt(-gast);
-  document.getElementById('sumExtra').textContent=fmt(extra);
-  document.getElementById('saldoP').textContent=fmt(saldo.Pichincha);
-  document.getElementById('saldoB').textContent=fmt(saldo.Pacifico);
-  save(); renderPlanTable();
-}
-function renderList(){
-  const ul=document.getElementById('lista'); ul.innerHTML='';
-  data.gastos.forEach(g=>{
-    const li=document.createElement('li');
-    li.textContent=`${g.fecha} • ${g.cat} • ${fmt(g.monto)} • ${g.metodo}${g.extra?' • extra:'+g.motivo:''}`;
-    ul.appendChild(li);
-  });
-}
+/* === GASTO REAL =========================================================== */
 function addGasto(){
-  const f=document.getElementById('gDate').value;
-  const c=document.getElementById('gCat').value.trim();
-  const m=parseFloat(document.getElementById('gAmount').value||'0');
-  const met=document.getElementById('gPay').value;
-  const ex=document.getElementById('gExtra').value==='si';
-  const mot=document.getElementById('motivoTxt').value.trim();
-  if(!f||!c||!m){alert('Completa datos');return;}
-  data.gastos.push({fecha:f,cat:c,monto:m,metodo:met,extra:ex,motivo:mot});
-  /* Marcar plan cumplido si coincide fecha y categoría */
-  const plan=data.plan.find(p=>!p.done&&p.fecha===f&&p.cat.toLowerCase()===c.toLowerCase());
-  if(plan){plan.done=true;}
+  const f = document.getElementById('gDate').value;
+  const cat = document.getElementById('gCat').value;
+  const monto = parseFloat(document.getElementById('gAmount').value||'0');
+  const metodo = document.getElementById('gPay').value;
+  const tarjeta = metodo==="Credito" ? document.getElementById('gTarj').value : "";
+  const ex = document.getElementById('gExtra').value==='si';
+  const mot = document.getElementById('motivoTxt').value.trim();
+  if(!f||!monto){alert('Completa fecha y monto');return;}
+
+  data.gastos.push({fecha:f,cat,monto,metodo,tarjeta,extra:ex,motivo:mot});
+  /* match plan fijo */
+  const plan = data.plan.find(p=>!p.done && p.cat===cat &&
+                                (p.fecha===f || CATS_POOL.includes(cat)));
+  if(plan){ plan.done=true; plan.real=monto; }
   save(); renderList(); updateSummary();
-  document.getElementById('gCat').value='';
   document.getElementById('gAmount').value='';
   document.getElementById('motivoTxt').value='';
 }
 
-/* === Mostrar/esconder motivo extra === */
-document.getElementById('gExtra').addEventListener('change',e=>{
-  const show=e.target.value==='si';
-  document.getElementById('motivoLbl').style.display=show?'block':'none';
-  document.getElementById('motivoTxt').style.display=show?'block':'none';
-});
+/* === RENDER LISTA GASTOS ================================================== */
+function renderList(){
+  const ul=document.getElementById('lista'); ul.innerHTML='';
+  data.gastos.forEach(g=>{
+    const li=document.createElement('li');
+    li.textContent=`${g.fecha} • ${g.cat} • ${fmt(g.monto)} • ${g.metodo}${g.tarjeta?'-'+g.tarjeta:''}${g.extra?' • extra:'+g.motivo:''}`;
+    ul.appendChild(li);
+  });
+}
 
-/* === Cuenta regresiva === */
+/* === RESUMEN & SALDOS ===================================================== */
+function updateSummary(){
+  /* totales plan */
+  const planTotal = data.plan.reduce((s,p)=>s+p.monto,0);
+  /* totales gastados */
+  const gastado = data.gastos.reduce((s,g)=>s+g.monto,0);
+  /* diferencia plan vs real */
+  document.getElementById('sumBudget').textContent=fmt(planTotal);
+  document.getElementById('sumSpent').textContent=fmt(gastado);
+  document.getElementById('sumDiff').textContent=fmt(planTotal-gastado);
+
+  /* tarjetas globales */
+  let pG=0,bG=0, pR=0,bR=0;
+  data.gastos.forEach(g=>{
+    if(g.metodo==="Credito"){
+      if(g.tarjeta==="Pichincha"){pG+=g.monto;if(g.cat==="Ropa")pR+=g.monto;}
+      if(g.tarjeta==="Pacifico"){bG+=g.monto;if(g.cat==="Ropa")bR+=g.monto;}
+    }
+  });
+  const m=data.meta;
+  document.getElementById('pTotal').textContent=fmt((m.pIni||0)-pG);
+  document.getElementById('bTotal').textContent=fmt((m.bIni||0)-bG);
+  document.getElementById('pRopa').textContent=fmt((m.ropaIni||0)-pR);
+  document.getElementById('bRopa').textContent=fmt((m.ropaIni||0)-bR);
+
+  /* fondos gasolina/propinas */
+  let gGast=0, prGast=0;
+  data.gastos.forEach(g=>{
+    if(g.cat==="Gasolina") gGast+=g.monto;
+    if(g.cat==="Propinas") prGast+=g.monto;
+  });
+  document.getElementById('gasSaldo').textContent=fmt((m.gasIni||0)-gGast);
+  document.getElementById('propSaldo').textContent=fmt((m.propIni||0)-prGast);
+
+  /* variación plan */
+  let delta=0;
+  data.plan.forEach(p=>{
+    if(p.real){
+      delta += p.real - p.monto;
+    }
+  });
+  document.getElementById('planDelta').textContent=fmt(delta);
+
+  /* mover planes fijos no ejecutados a extra */
+  const hoy=new Date().toISOString().slice(0,10);
+  data.plan.forEach(p=>{
+    if(!p.done && p.fecha && p.fecha<hoy){
+      p.done=true;
+      data.meta.extra = (data.meta.extra||0) + p.monto;
+    }
+  });
+  document.getElementById('sumExtra').textContent=fmt(data.meta.extra||0);
+
+  save(); renderPlanTable();
+}
+
+/* === CUENTA REGRESIVA ===================================================== */
 function tick(){
-  if(!data.meta.start){document.getElementById('countdown').textContent='Sin configuración';return;}
+  if(!data.meta.start){return;}
   const target=new Date(data.meta.start+'T00:00:00').getTime();
   const now=Date.now(); let diff=target-now;
   const el=document.getElementById('countdown');
@@ -241,26 +333,42 @@ function tick(){
   el.textContent=`${d}d ${h}h ${m}m ${s}s`;
 }
 
-/* === Renderizar todo según meta === */
+/* === CONTROL UI SEGÚN METADATOS ========================================== */
 function renderUI(){
-  /* Cargar campos de meta si existen */
-  document.getElementById('tripStart').value=data.meta.start||'';
-  document.getElementById('tripEnd').value=data.meta.end||'';
-  document.getElementById('tripLock').value=data.meta.lock||'';
+  /* rellena selects visibles */
+  fillCatSelect(document.getElementById('pCat'));
+  fillCatSelect(document.getElementById('gCat'));
 
-  const todayStr=new Date().toISOString().slice(0,10);
-  const configBox=document.getElementById('configBox');
-  const planBlock=document.getElementById('planBlock');
-
-  /* Bloqueo de edición plan */
-  if(data.meta.lock && todayStr>data.meta.lock){
-    planBlock.open=false;
-    planBlock.style.display='none';
+  const today=new Date().toISOString().slice(0,10);
+  if(data.meta.lock && today>data.meta.lock){
+    /* ocultar plan inputs */
+    document.querySelectorAll('#planBlock input, #planBlock select, #planBlock button')
+      .forEach(el=>el.disabled=true);
   }
+  /* pre-llenar meta en formularios si existe */
+  ['tripStart','tripEnd','tripLock','pIni','bIni','gasIni','propIni','ropaIni']
+    .forEach(id=>{ if(data.meta[id]) document.getElementById(id).value=data.meta[id]; });
+
   renderPlanTable(); renderList(); updateSummary();
 }
 
-/* === Init === */
+/* === EVENTOS UI =========================================================== */
+document.getElementById('pPay').addEventListener('change',e=>{
+  document.getElementById('pTarj').style.display =
+    e.target.value==="Credito" ? 'block':'none';
+});
+document.getElementById('gPay').addEventListener('change',e=>{
+  const show=e.target.value==="Credito";
+  document.getElementById('gTarjLbl').style.display=show?'block':'none';
+  document.getElementById('gTarj').style.display=show?'block':'none';
+});
+document.getElementById('gExtra').addEventListener('change',e=>{
+  const show=e.target.value==='si';
+  document.getElementById('motivoLbl').style.display=show?'block':'none';
+  document.getElementById('motivoTxt').style.display=show?'block':'none';
+});
+
+/* === INICIO =============================================================== */
 renderUI(); tick(); setInterval(tick,1e3);
 </script>
 </body>
